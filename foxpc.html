@@ -1,0 +1,793 @@
+<!--Je veux un site Web qui permet à des utilisateurs de PC de rentrer des infos sur leur configuration (CPU, GPU, Ram, etc...) pour ensuite pouvoir afficher des stats sur les configurations et collecter des infos sur la performance dans des benchmarks de jeux-->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Config Tracker - Suivi des performances PC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+        .config-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-desktop text-2xl"></i>
+                <span class="text-xl font-bold">PC Config Tracker</span>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="#submit" class="hover:text-blue-200 transition">Ajouter une config</a>
+                <a href="#stats" class="hover:text-blue-200 transition">Statistiques</a>
+                <a href="#benchmarks" class="hover:text-blue-200 transition">Benchmarks</a>
+            </div>
+            <button class="md:hidden text-xl" id="mobile-menu-button">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <!-- Mobile menu -->
+        <div class="md:hidden hidden px-4 pb-4" id="mobile-menu">
+            <a href="#submit" class="block py-2 hover:text-blue-200 transition">Ajouter une config</a>
+            <a href="#stats" class="block py-2 hover:text-blue-200 transition">Statistiques</a>
+            <a href="#benchmarks" class="block py-2 hover:text-blue-200 transition">Benchmarks</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="gradient-bg text-white py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Partagez et comparez votre configuration PC</h1>
+            <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">Enregistrez votre setup, comparez les performances et découvrez comment optimiser votre machine.</p>
+            <a href="#submit" class="bg-white text-blue-600 font-bold px-8 py-3 rounded-full hover:bg-gray-100 transition duration-300 inline-block">
+                Ajouter ma configuration <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <!-- Submit Config Section -->
+        <section id="submit" class="mb-20">
+            <h2 class="text-3xl font-bold mb-8 text-center">Ajouter votre configuration</h2>
+            <div class="bg-white rounded-xl shadow-md p-6 max-w-4xl mx-auto">
+                <form id="config-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- CPU -->
+                        <div>
+                            <label for="cpu" class="block text-sm font-medium text-gray-700 mb-1">Processeur (CPU)</label>
+                            <div class="flex">
+                                <select id="cpu-brand" class="flex-1 rounded-l-md border-r-0 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="">Marque</option>
+                                    <option value="Intel">Intel</option>
+                                    <option value="AMD">AMD</option>
+                                </select>
+                                <input type="text" id="cpu-model" class="flex-2 rounded-r-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Modèle (ex: i7-13700K)">
+                            </div>
+                        </div>
+                        
+                        <!-- GPU -->
+                        <div>
+                            <label for="gpu" class="block text-sm font-medium text-gray-700 mb-1">Carte graphique (GPU)</label>
+                            <div class="flex">
+                                <select id="gpu-brand" class="flex-1 rounded-l-md border-r-0 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="">Marque</option>
+                                    <option value="NVIDIA">NVIDIA</option>
+                                    <option value="AMD">AMD</option>
+                                    <option value="Intel">Intel</option>
+                                </select>
+                                <input type="text" id="gpu-model" class="flex-2 rounded-r-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Modèle (ex: RTX 4080)">
+                            </div>
+                        </div>
+                        
+                        <!-- RAM -->
+                        <div>
+                            <label for="ram" class="block text-sm font-medium text-gray-700 mb-1">Mémoire RAM (GB)</label>
+                            <input type="number" id="ram" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="32">
+                        </div>
+                        
+                        <!-- Storage -->
+                        <div>
+                            <label for="storage" class="block text-sm font-medium text-gray-700 mb-1">Stockage principal</label>
+                            <div class="flex space-x-2">
+                                <select id="storage-type" class="flex-1 rounded-l-md border-r-0 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="SSD">SSD</option>
+                                    <option value="HDD">HDD</option>
+                                    <option value="NVMe">NVMe</option>
+                                </select>
+                                <input type="number" id="storage-size" class="flex-1 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="512">
+                                <select id="storage-unit" class="flex-1 rounded-r-md border-l-0 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="GB">GB</option>
+                                    <option value="TB">TB</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Cooling -->
+                        <div>
+                            <label for="cooling" class="block text-sm font-medium text-gray-700 mb-1">Refroidissement CPU</label>
+                            <select id="cooling" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="Air">Refroidissement à air</option>
+                                <option value="AIO">Watercooling AIO</option>
+                                <option value="Custom Loop">Watercooling personnalisé</option>
+                                <option value="Stock">Refroidissement d'origine</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Case -->
+                        <div>
+                            <label for="case" class="block text-sm font-medium text-gray-700 mb-1">Boîtier</label>
+                            <input type="text" id="case" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Modèle de boîtier">
+                        </div>
+                    </div>
+                    
+                    <!-- Benchmark Results -->
+                    <div class="pt-4 border-t border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Résultats de benchmarks</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="cinebench" class="block text-sm font-medium text-gray-700 mb-1">Cinebench R23 (Multi)</label>
+                                <input type="number" id="cinebench" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Score">
+                            </div>
+                            <div>
+                                <label for="timespy" class="block text-sm font-medium text-gray-700 mb-1">3DMark Time Spy (GPU)</label>
+                                <input type="number" id="timespy" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Score">
+                            </div>
+                            <div>
+                                <label for="game-fps" class="block text-sm font-medium text-gray-700 mb-1">FPS moyen (jeu récent)</label>
+                                <input type="number" id="game-fps" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="FPS">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="pt-6">
+                        <button type="submit" class="w-full gradient-bg text-white font-bold py-3 px-4 rounded-md hover:opacity-90 transition duration-300 flex items-center justify-center">
+                            <i class="fas fa-save mr-2"></i> Enregistrer ma configuration
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Recent Configs Section -->
+        <section class="mb-20">
+            <h2 class="text-3xl font-bold mb-8 text-center">Configurations récentes</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="recent-configs">
+                <!-- Config cards will be added here dynamically -->
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section id="stats" class="mb-20">
+            <h2 class="text-3xl font-bold mb-8 text-center">Statistiques globales</h2>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- CPU Distribution -->
+                    <div class="fade-in">
+                        <h3 class="text-xl font-semibold mb-4">Répartition des processeurs</h3>
+                        <canvas id="cpuChart" height="300"></canvas>
+                    </div>
+                    
+                    <!-- GPU Distribution -->
+                    <div class="fade-in">
+                        <h3 class="text-xl font-semibold mb-4">Répartition des cartes graphiques</h3>
+                        <canvas id="gpuChart" height="300"></canvas>
+                    </div>
+                    
+                    <!-- RAM Distribution -->
+                    <div class="fade-in">
+                        <h3 class="text-xl font-semibold mb-4">Quantité de RAM</h3>
+                        <canvas id="ramChart" height="300"></canvas>
+                    </div>
+                    
+                    <!-- Benchmark Performance -->
+                    <div class="fade-in">
+                        <h3 class="text-xl font-semibold mb-4">Performances moyennes</h3>
+                        <canvas id="benchmarkChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Benchmarks Section -->
+        <section id="benchmarks" class="mb-12">
+            <h2 class="text-3xl font-bold mb-8 text-center">Comparaison de performances</h2>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="mb-6">
+                    <label for="benchmark-select" class="block text-sm font-medium text-gray-700 mb-2">Sélectionner un benchmark</label>
+                    <select id="benchmark-select" class="w-full md:w-1/2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="cinebench">Cinebench R23 (Multi-Core)</option>
+                        <option value="timespy">3DMark Time Spy (GPU)</option>
+                        <option value="fps">FPS moyen dans les jeux</option>
+                    </select>
+                </div>
+                
+                <div class="fade-in">
+                    <canvas id="performanceChart" height="400"></canvas>
+                </div>
+                
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6" id="top-performers">
+                    <!-- Top performers will be added here dynamically -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="gradient-bg text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-desktop text-2xl"></i>
+                        <span class="text-xl font-bold">PC Config Tracker</span>
+                    </div>
+                    <p class="mt-2 text-blue-100">Suivez, comparez et optimisez votre configuration PC</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="hover:text-blue-200 transition"><i class="fab fa-twitter text-xl"></i></a>
+                    <a href="#" class="hover:text-blue-200 transition"><i class="fab fa-github text-xl"></i></a>
+                    <a href="#" class="hover:text-blue-200 transition"><i class="fab fa-discord text-xl"></i></a>
+                </div>
+            </div>
+            <div class="mt-8 pt-6 border-t border-blue-400 text-center text-blue-100">
+                <p>&copy; 2023 PC Config Tracker. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-green-600 text-3xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Configuration enregistrée !</h3>
+            <p class="text-gray-600 mb-6">Votre configuration a été ajoutée avec succès à notre base de données.</p>
+            <button id="close-modal" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition">
+                Fermer
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Sample data storage (in a real app, this would be a database)
+        let configurations = [
+            {
+                id: 1,
+                cpu: { brand: 'Intel', model: 'i7-13700K' },
+                gpu: { brand: 'NVIDIA', model: 'RTX 4080' },
+                ram: 32,
+                storage: { type: 'NVMe', size: 1, unit: 'TB' },
+                cooling: 'AIO',
+                case: 'Lian Li O11 Dynamic',
+                benchmarks: {
+                    cinebench: 24500,
+                    timespy: 21000,
+                    fps: 144
+                },
+                date: '2023-05-15'
+            },
+            {
+                id: 2,
+                cpu: { brand: 'AMD', model: 'Ryzen 9 7950X' },
+                gpu: { brand: 'AMD', model: 'RX 7900 XTX' },
+                ram: 64,
+                storage: { type: 'NVMe', size: 2, unit: 'TB' },
+                cooling: 'Custom Loop',
+                case: 'Corsair 5000D',
+                benchmarks: {
+                    cinebench: 38000,
+                    timespy: 23500,
+                    fps: 165
+                },
+                date: '2023-06-20'
+            },
+            {
+                id: 3,
+                cpu: { brand: 'Intel', model: 'i5-13600K' },
+                gpu: { brand: 'NVIDIA', model: 'RTX 4070 Ti' },
+                ram: 16,
+                storage: { type: 'SSD', size: 512, unit: 'GB' },
+                cooling: 'Air',
+                case: 'Fractal Design Meshify C',
+                benchmarks: {
+                    cinebench: 18000,
+                    timespy: 17500,
+                    fps: 120
+                },
+                date: '2023-04-10'
+            }
+        ];
+
+        // DOM Elements
+        const configForm = document.getElementById('config-form');
+        const recentConfigsContainer = document.getElementById('recent-configs');
+        const topPerformersContainer = document.getElementById('top-performers');
+        const successModal = document.getElementById('success-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        // Mobile menu toggle
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close modal
+        closeModalBtn.addEventListener('click', () => {
+            successModal.classList.add('hidden');
+        });
+
+        // Form submission
+        configForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Get form values
+            const cpuBrand = document.getElementById('cpu-brand').value;
+            const cpuModel = document.getElementById('cpu-model').value;
+            const gpuBrand = document.getElementById('gpu-brand').value;
+            const gpuModel = document.getElementById('gpu-model').value;
+            const ram = parseInt(document.getElementById('ram').value);
+            const storageType = document.getElementById('storage-type').value;
+            const storageSize = parseInt(document.getElementById('storage-size').value);
+            const storageUnit = document.getElementById('storage-unit').value;
+            const cooling = document.getElementById('cooling').value;
+            const caseModel = document.getElementById('case').value;
+            const cinebench = parseInt(document.getElementById('cinebench').value) || null;
+            const timespy = parseInt(document.getElementById('timespy').value) || null;
+            const fps = parseInt(document.getElementById('game-fps').value) || null;
+            
+            // Create new config object
+            const newConfig = {
+                id: configurations.length + 1,
+                cpu: { brand: cpuBrand, model: cpuModel },
+                gpu: { brand: gpuBrand, model: gpuModel },
+                ram: ram,
+                storage: { type: storageType, size: storageSize, unit: storageUnit },
+                cooling: cooling,
+                case: caseModel,
+                benchmarks: {
+                    cinebench: cinebench,
+                    timespy: timespy,
+                    fps: fps
+                },
+                date: new Date().toISOString().split('T')[0]
+            };
+            
+            // Add to configurations
+            configurations.unshift(newConfig);
+            
+            // Reset form
+            configForm.reset();
+            
+            // Show success modal
+            successModal.classList.remove('hidden');
+            
+            // Update UI
+            renderRecentConfigs();
+            renderCharts();
+            renderTopPerformers();
+        });
+
+        // Render recent configs
+        function renderRecentConfigs() {
+            recentConfigsContainer.innerHTML = '';
+            
+            // Show only the 6 most recent configs
+            const recentConfigs = configurations.slice(0, 6);
+            
+            recentConfigs.forEach(config => {
+                const card = document.createElement('div');
+                card.className = 'config-card bg-white rounded-xl shadow-md overflow-hidden transition duration-300';
+                
+                // Determine performance level based on benchmarks
+                let performanceLevel = 'Moyenne';
+                let performanceColor = 'bg-yellow-100 text-yellow-800';
+                
+                if (config.benchmarks.cinebench > 30000 || config.benchmarks.timespy > 20000) {
+                    performanceLevel = 'Haut de gamme';
+                    performanceColor = 'bg-purple-100 text-purple-800';
+                } else if (config.benchmarks.cinebench < 15000 || config.benchmarks.timespy < 10000) {
+                    performanceLevel = 'Entrée de gamme';
+                    performanceColor = 'bg-blue-100 text-blue-800';
+                }
+                
+                card.innerHTML = `
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold">${config.cpu.brand} ${config.cpu.model}</h3>
+                                <p class="text-gray-600">${config.gpu.brand} ${config.gpu.model}</p>
+                            </div>
+                            <span class="text-xs px-2 py-1 rounded-full ${performanceColor} font-semibold">${performanceLevel}</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <p class="text-sm text-gray-500">RAM</p>
+                                <p class="font-semibold">${config.ram} GB</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Stockage</p>
+                                <p class="font-semibold">${config.storage.size} ${config.storage.unit} ${config.storage.type}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Refroidissement</p>
+                                <p class="font-semibold">${config.cooling}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Boîtier</p>
+                                <p class="font-semibold truncate">${config.case || 'Non spécifié'}</p>
+                            </div>
+                        </div>
+                        
+                        ${config.benchmarks.cinebench || config.benchmarks.timespy || config.benchmarks.fps ? `
+                        <div class="pt-4 border-t border-gray-200">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Performances</h4>
+                            <div class="flex justify-between text-sm">
+                                ${config.benchmarks.cinebench ? `<div><span class="text-gray-500">Cinebench:</span> <span class="font-medium">${config.benchmarks.cinebench.toLocaleString()}</span></div>` : ''}
+                                ${config.benchmarks.timespy ? `<div><span class="text-gray-500">Time Spy:</span> <span class="font-medium">${config.benchmarks.timespy.toLocaleString()}</span></div>` : ''}
+                                ${config.benchmarks.fps ? `<div><span class="text-gray-500">FPS:</span> <span class="font-medium">${config.benchmarks.fps}</span></div>` : ''}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                recentConfigsContainer.appendChild(card);
+            });
+        }
+
+        // Render top performers
+        function renderTopPerformers() {
+            topPerformersContainer.innerHTML = '';
+            
+            // Sort by Cinebench score
+            const cinebenchTop = [...configurations]
+                .filter(c => c.benchmarks.cinebench)
+                .sort((a, b) => b.benchmarks.cinebench - a.benchmarks.cinebench)
+                .slice(0, 3);
+            
+            // Sort by Time Spy score
+            const timespyTop = [...configurations]
+                .filter(c => c.benchmarks.timespy)
+                .sort((a, b) => b.benchmarks.timespy - a.benchmarks.timespy)
+                .slice(0, 3);
+            
+            // Sort by FPS
+            const fpsTop = [...configurations]
+                .filter(c => c.benchmarks.fps)
+                .sort((a, b) => b.benchmarks.fps - a.benchmarks.fps)
+                .slice(0, 3);
+            
+            // Create top performers cards
+            createTopPerformerCard('Cinebench R23', cinebenchTop, 'cpu', 'benchmarks.cinebench');
+            createTopPerformerCard('3DMark Time Spy', timespyTop, 'gpu', 'benchmarks.timespy');
+            createTopPerformerCard('FPS dans les jeux', fpsTop, 'gpu', 'benchmarks.fps');
+        }
+        
+        function createTopPerformerCard(title, topConfigs, componentKey, benchmarkKey) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow-md p-6';
+            
+            let content = `
+                <h3 class="text-lg font-bold mb-4 flex items-center">
+                    <i class="fas fa-trophy text-yellow-500 mr-2"></i> ${title}
+                </h3>
+            `;
+            
+            if (topConfigs.length === 0) {
+                content += `<p class="text-gray-500">Aucune donnée disponible</p>`;
+            } else {
+                content += `<div class="space-y-4">`;
+                
+                topConfigs.forEach((config, index) => {
+                    const component = config[componentKey];
+                    const score = benchmarkKey.split('.').reduce((o, k) => o[k], config);
+                    
+                    content += `
+                        <div class="flex items-start">
+                            <span class="flex items-center justify-center w-6 h-6 rounded-full ${index === 0 ? 'bg-yellow-100 text-yellow-800' : index === 1 ? 'bg-gray-200 text-gray-700' : 'bg-amber-100 text-amber-800'} font-bold text-sm mr-3 mt-1">
+                                ${index + 1}
+                            </span>
+                            <div>
+                                <p class="font-semibold">${component.brand} ${component.model}</p>
+                                <p class="text-sm text-gray-600">Score: ${score.toLocaleString()}</p>
+                                <p class="text-xs text-gray-500 mt-1">${config.ram}GB RAM • ${config.cpu.brand} ${config.cpu.model}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                content += `</div>`;
+            }
+            
+            card.innerHTML = content;
+            topPerformersContainer.appendChild(card);
+        }
+
+        // Initialize charts
+        let cpuChart, gpuChart, ramChart, benchmarkChart, performanceChart;
+
+        function renderCharts() {
+            // CPU Brand Distribution
+            const cpuBrands = {};
+            configurations.forEach(config => {
+                const brand = config.cpu.brand;
+                cpuBrands[brand] = (cpuBrands[brand] || 0) + 1;
+            });
+            
+            if (cpuChart) cpuChart.destroy();
+            cpuChart = new Chart(document.getElementById('cpuChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(cpuBrands),
+                    datasets: [{
+                        data: Object.values(cpuBrands),
+                        backgroundColor: ['#3b82f6', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // GPU Brand Distribution
+            const gpuBrands = {};
+            configurations.forEach(config => {
+                const brand = config.gpu.brand;
+                gpuBrands[brand] = (gpuBrands[brand] || 0) + 1;
+            });
+            
+            if (gpuChart) gpuChart.destroy();
+            gpuChart = new Chart(document.getElementById('gpuChart'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(gpuBrands),
+                    datasets: [{
+                        data: Object.values(gpuBrands),
+                        backgroundColor: ['#10b981', '#ef4444', '#3b82f6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // RAM Distribution
+            const ramAmounts = {};
+            configurations.forEach(config => {
+                const ram = config.ram;
+                ramAmounts[ram] = (ramAmounts[ram] || 0) + 1;
+            });
+            
+            const sortedRam = Object.keys(ramAmounts).sort((a, b) => a - b);
+            const ramCounts = sortedRam.map(ram => ramAmounts[ram]);
+            
+            if (ramChart) ramChart.destroy();
+            ramChart = new Chart(document.getElementById('ramChart'), {
+                type: 'bar',
+                data: {
+                    labels: sortedRam.map(ram => `${ram} GB`),
+                    datasets: [{
+                        data: ramCounts,
+                        backgroundColor: '#3b82f6',
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Average Benchmarks
+            const hasCinebench = configurations.some(c => c.benchmarks.cinebench);
+            const hasTimespy = configurations.some(c => c.benchmarks.timespy);
+            const hasFps = configurations.some(c => c.benchmarks.fps);
+            
+            const cinebenchAvg = hasCinebench ? 
+                Math.round(configurations.reduce((sum, c) => sum + (c.benchmarks.cinebench || 0), 0) / 
+                configurations.filter(c => c.benchmarks.cinebench).length) : 0;
+                
+            const timespyAvg = hasTimespy ? 
+                Math.round(configurations.reduce((sum, c) => sum + (c.benchmarks.timespy || 0), 0) / 
+                configurations.filter(c => c.benchmarks.timespy).length) : 0;
+                
+            const fpsAvg = hasFps ? 
+                Math.round(configurations.reduce((sum, c) => sum + (c.benchmarks.fps || 0), 0) / 
+                configurations.filter(c => c.benchmarks.fps).length) : 0;
+            
+            if (benchmarkChart) benchmarkChart.destroy();
+            benchmarkChart = new Chart(document.getElementById('benchmarkChart'), {
+                type: 'radar',
+                data: {
+                    labels: ['Cinebench R23', '3DMark Time Spy', 'FPS Jeux'],
+                    datasets: [{
+                        label: 'Moyenne',
+                        data: [cinebenchAvg / 300, timespyAvg / 200, fpsAvg],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#3b82f6',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            ticks: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Performance Comparison Chart
+            updatePerformanceChart();
+            
+            // Add event listener for benchmark select
+            document.getElementById('benchmark-select').addEventListener('change', updatePerformanceChart);
+        }
+        
+        function updatePerformanceChart() {
+            const benchmarkType = document.getElementById('benchmark-select').value;
+            let label, property, data = [];
+            let backgroundColor = '#3b82f6';
+            
+            switch(benchmarkType) {
+                case 'cinebench':
+                    label = 'Cinebench R23 (Multi-Core)';
+                    property = 'benchmarks.cinebench';
+                    backgroundColor = '#10b981';
+                    break;
+                case 'timespy':
+                    label = '3DMark Time Spy (GPU)';
+                    property = 'benchmarks.timespy';
+                    backgroundColor = '#ef4444';
+                    break;
+                case 'fps':
+                    label = 'FPS moyen dans les jeux';
+                    property = 'benchmarks.fps';
+                    backgroundColor = '#8b5cf6';
+                    break;
+            }
+            
+            // Filter configs with this benchmark data and sort by score
+            const filteredConfigs = configurations
+                .filter(c => {
+                    const value = property.split('.').reduce((o, k) => o[k], c);
+                    return value !== null && value !== undefined;
+                })
+                .sort((a, b) => {
+                    const aValue = property.split('.').reduce((o, k) => o[k], a);
+                    const bValue = property.split('.').reduce((o, k) => o[k], b);
+                    return bValue - aValue;
+                })
+                .slice(0, 10);
+            
+            const labels = filteredConfigs.map(c => {
+                const cpu = c.cpu.model.length > 15 ? c.cpu.model.substring(0, 15) + '...' : c.cpu.model;
+                const gpu = c.gpu.model.length > 15 ? c.gpu.model.substring(0, 15) + '...' : c.gpu.model;
+                return `${cpu} + ${gpu}`;
+            });
+            
+            const dataValues = filteredConfigs.map(c => property.split('.').reduce((o, k) => o[k], c));
+            
+            if (performanceChart) performanceChart.destroy();
+            performanceChart = new Chart(document.getElementById('performanceChart'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: dataValues,
+                        backgroundColor: backgroundColor,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const config = filteredConfigs[context.dataIndex];
+                                    return `RAM: ${config.ram}GB\nStockage: ${config.storage.size}${config.storage.unit} ${config.storage.type}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            renderRecentConfigs();
+            renderCharts();
+            renderTopPerformers();
+            
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 20,
+                            behavior: 'smooth'
+                        });
+                        
+                        // Close mobile menu if open
+                        if (!mobileMenu.classList.contains('hidden')) {
+                            mobileMenu.classList.add('hidden');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
