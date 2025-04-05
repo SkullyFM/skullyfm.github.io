@@ -23,6 +23,16 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .chart-container {
+            position: relative;
+            height: 220px;
+            width: 100%;
+        }
+        .performance-chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -182,25 +192,33 @@
                     <!-- CPU Distribution -->
                     <div class="fade-in">
                         <h3 class="text-xl font-semibold mb-4">Répartition des processeurs</h3>
-                        <canvas id="cpuChart" height="300"></canvas>
+                        <div class="chart-container">
+                            <canvas id="cpuChart"></canvas>
+                        </div>
                     </div>
                     
                     <!-- GPU Distribution -->
                     <div class="fade-in">
                         <h3 class="text-xl font-semibold mb-4">Répartition des cartes graphiques</h3>
-                        <canvas id="gpuChart" height="300"></canvas>
+                        <div class="chart-container">
+                            <canvas id="gpuChart"></canvas>
+                        </div>
                     </div>
                     
                     <!-- RAM Distribution -->
                     <div class="fade-in">
                         <h3 class="text-xl font-semibold mb-4">Quantité de RAM</h3>
-                        <canvas id="ramChart" height="300"></canvas>
+                        <div class="chart-container">
+                            <canvas id="ramChart"></canvas>
+                        </div>
                     </div>
                     
                     <!-- Benchmark Performance -->
                     <div class="fade-in">
                         <h3 class="text-xl font-semibold mb-4">Performances moyennes</h3>
-                        <canvas id="benchmarkChart" height="300"></canvas>
+                        <div class="chart-container">
+                            <canvas id="benchmarkChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -219,8 +237,8 @@
                     </select>
                 </div>
                 
-                <div class="fade-in">
-                    <canvas id="performanceChart" height="400"></canvas>
+                <div class="fade-in performance-chart-container">
+                    <canvas id="performanceChart"></canvas>
                 </div>
                 
                 <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6" id="top-performers">
@@ -548,9 +566,14 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'bottom'
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 20
+                            }
                         }
                     }
                 }
@@ -576,9 +599,14 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'bottom'
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 20
+                            }
                         }
                     }
                 }
@@ -607,9 +635,13 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
                         }
                     },
                     plugins: {
@@ -654,6 +686,7 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         r: {
                             angleLines: {
@@ -738,6 +771,7 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         y: {
                             beginAtZero: true
